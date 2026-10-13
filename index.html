@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中2理科：原子と化学式マスター</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React & React DOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- Babel CDN for inline JSX execution -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.2s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const IconAtom = () => (
+      <svg className="w-6 h-6 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3" />
+        <ellipse cx="12" cy="12" rx="9" ry="3" transform="rotate(30 12 12)" />
+        <ellipse cx="12" cy="12" rx="9" ry="3" transform="rotate(90 12 12)" />
+        <ellipse cx="12" cy="12" rx="9" ry="3" transform="rotate(150 12 12)" />
+      </svg>
+    );
+
+    const IconFlask = () => (
+      <svg className="w-6 h-6 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 3h6M10 3v5l-4.5 8.5A2 2 0 0 0 7.2 19.5h9.6a2 2 0 0 0 1.7-3L14 8V3" />
+        <path d="M8.5 13h7" />
+      </svg>
+    );
+
+    const IconBook = () => (
+      <svg className="w-6 h-6 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+      </svg>
+    );
+
+    const IconCheck = () => (
+      <svg className="w-5 h-5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="20 6 9 17 4 12" />
+      </svg>
+    );
+
+    const IconX = () => (
+      <svg className="w-5 h-5 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
+    );
+
+    const IconRefresh = () => (
+      <svg className="w-5 h-5 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21.5 2v6h-6M2.5 22v-6h6" />
+        <path d="M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
+      </svg>
+    );
+
+    const IconTrophy = () => (
+      <svg className="w-8 h-8 text-amber-400 fill-amber-100 stroke-current" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+        <path d="M4 22h16" />
+        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+        <path d="M18 2H6v7a6 6 0 0 0 12 0V2z" />
+      </svg>
+    );
+
+    const ELEMENTS = [
+      { symbol: 'H', name: '水素', category: '非金属', color: 'bg-sky-100 text-sky-800 border-sky-300', atomColor: '#38bdf8', tip: '宇宙で一番多い気体。燃えると水になる。' },
+      { symbol: 'He', name: 'ヘリウム', category: '非金属', color: 'bg-purple-100 text-purple-800 border-purple-300', atomColor: '#c084fc', tip: '風船に入れられる軽い気体。' },
+      { symbol: 'C', name: '炭素', category: '非金属', color: 'bg-slate-200 text-slate-800 border-slate-400', atomColor: '#475569', tip: '木炭やダイヤモンドの成分。' },
+      { symbol: 'N', name: '窒素', category: '非金属', color: 'bg-indigo-100 text-indigo-800 border-indigo-300', atomColor: '#818cf8', tip: '空気の約80%を占める気体。' },
+      { symbol: 'O', name: '酸素', category: '非金属', color: 'bg-rose-100 text-rose-800 border-rose-300', atomColor: '#fb7185', tip: '息を吸うときに必要。物を燃やす働きがある。' },
+      { symbol: 'Na', name: 'ナトリウム', category: '金属', color: 'bg-amber-100 text-amber-800 border-amber-300', atomColor: '#fbbf24', tip: '食塩（塩化ナトリウム）の構成元素。' },
+      { symbol: 'Mg', name: 'マグネシウム', category: '金属', color: 'bg-emerald-100 text-emerald-800 border-emerald-300', atomColor: '#34d399', tip: '激しく光を出して燃える軽い金属。' },
+      { symbol: 'Al', name: 'アルミニウム', category: '金属', color: 'bg-teal-100 text-teal-800 border-teal-300', atomColor: '#2dd4bf', tip: 'アルミ缶や一円玉の材料。' },
+      { symbol: 'S', name: '硫黄', category: '非金属', color: 'bg-yellow-100 text-yellow-800 border-yellow-300', atomColor: '#facc15', tip: '黄色い固体。温泉の匂いの元。' },
+      { symbol: 'Cl', name: '塩素', category: '非金属', color: 'bg-lime-100 text-lime-800 border-lime-300', atomColor: '#a3e635', tip: 'プールなどの消毒に使われる刺激臭のある気体。' },
+      { symbol: 'K', name: 'カリウム', category: '金属', color: 'bg-orange-100 text-orange-800 border-orange-300', atomColor: '#fb923c', tip: '植物の成長に欠かせない肥料の成分。' },
+      { symbol: 'Ca', name: 'カルシウム', category: '金属', color: 'bg-stone-200 text-stone-800 border-stone-400', atomColor: '#a8a29e', tip: '骨や歯を作る大事な金属元素。' },
+      { symbol: 'Fe', name: '鉄', category: '金属', color: 'bg-cyan-100 text-cyan-800 border-cyan-300', atomColor: '#22d3ee', tip: '磁石につく。身近な金属。' },
+      { symbol: 'Cu', name: '銅', category: '金属', color: 'bg-amber-200 text-amber-900 border-amber-400', atomColor: '#f59e0b', tip: '赤褐色で電気をよく通す。10円玉。' },
+      { symbol: 'Zn', name: '亜鉛', category: '金属', color: 'bg-blue-100 text-blue-800 border-blue-300', atomColor: '#60a5fa', tip: 'トタン板のめっきなどに使われる。' },
+      { symbol: 'Ag', name: '銀', category: '金属', color: 'bg-slate-300 text-slate-900 border-slate-400', atomColor: '#cbd5e1', tip: '美しい輝きを持つ金属。熱や電気を一番良く通す。' },
+      { symbol: 'Au', name: '金', category: '金属', color: 'bg-yellow-200 text-yellow-900 border-yellow-400', atomColor: '#eab308', tip: '変色しにくく非常に貴重な金属。' },
+      { symbol: 'Ba', name: 'バリウム', category: '金属', color: 'bg-green-100 text-green-800 border-green-300', atomColor: '#4ade80', tip: '胃のX線検査（レントゲン）の造影剤に用いられる。' },
+      { symbol: 'CO', name: '※化合物注意', category: '発展', color: 'bg-gray-100 text-gray-500 border-gray-300', atomColor: '#94a3b8', tip: '※Co(コバルト)とCO(一酸化炭素)の大小文字の違いに注意！' }
+    ];
+
+    const FORMULAS_DATA = [
+      { name: '水', formula: 'H2O', tip: '水素原子2個と酸素原子1個が結合した分子。' },
+      { name: '二酸化炭素', formula: 'CO2', tip: '炭素原子1個と酸素原子2個からなる分子。' },
+      { name: '酸素', formula: 'O2', tip: '酸素原子2個が結びついた気体の単体。' },
+      { name: '水素', formula: 'H2', tip: '最も軽い気体。水素原子2個が結びついた単体。' },
+      { name: '窒素', formula: 'N2', tip: '空気の約8割を占める気体。窒素原子2個の単体。' },
+      { name: '塩素', formula: 'Cl2', tip: '黄緑色で刺激臭のある気体。塩素原子2個の単体。' },
+      { name: '塩化水素', formula: 'HCl', tip: '水に溶かすと塩酸になる気体分子。' },
+      { name: 'アンモニア', formula: 'NH3', tip: '窒素1個と水素3個からなる刺激臭の気体分子。' },
+      { name: '酸化銅', formula: 'CuO', tip: '銅を加熱するとできる黒色の化合物。' },
+      { name: '硫化鉄', formula: 'FeS', tip: '鉄と硫黄を加熱して反応させた黒色の化合物。' },
+      { name: '塩化ナトリウム', formula: 'NaCl', tip: '食塩の主成分。ナトリウムと塩素の化合物。' },
+      { name: '炭酸水素ナトリウム', formula: 'NaHCO3', tip: '重曹のこと。加熱分解で二酸化炭素が発生。' },
+      { name: '炭酸ナトリウム', formula: 'Na2CO3', tip: '炭酸水素ナトリウムを加熱分解した後に残る白いアルカリ性の物質。' },
+      { name: '酸化銀', formula: 'Ag2O', tip: '黒色の固体。加熱分解で銀と酸素に分かれる。' },
+      { name: '硫化銅', formula: 'CuS', tip: '銅と硫黄が結びついてできる黒色の化合物。' },
+      { name: '酸化マグネシウム', formula: 'MgO', tip: 'マグネシウムが光を出して燃焼した後にできる白色粉末。' },
+      { name: 'メタン', formula: 'CH4', tip: '天然ガスの主成分。炭素1個と水素4個の分子。' }
+    ];
+
+    const formatFormulaText = (str) => {
+      const subMap = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉' };
+      return str.replace(/[0-9]/g, match => subMap[match] || match);
+    };
+
+    const BUILDER_COMPOUNDS = [
+      { name: '水', formula: 'H2O', formatted: <span>H<sub>2</sub>O</span>, parts: { H: 2, O: 1 }, type: '化合物（分子をつくる）', desc: '水素原子2個と酸素原子1個が結びついた物質。' },
+      { name: '二酸化炭素', formula: 'CO2', formatted: <span>CO<sub>2</sub></span>, parts: { C: 1, O: 2 }, type: '化合物（分子をつくる）', desc: '炭素原子1個と酸素原子2個が結びついた物質。' },
+      { name: '酸素', formula: 'O2', formatted: <span>O<sub>2</sub></span>, parts: { O: 2 }, type: '単体（分子をつくる）', desc: '酸素原子2個が結びついた気体。' },
+      { name: '水素', formula: 'H2', formatted: <span>H<sub>2</sub></span>, parts: { H: 2 }, type: '単体（分子をつくる）', desc: '最も軽い気体。水素原子2個で1つの分子。' },
+      { name: '塩化水素', formula: 'HCl', formatted: <span>HCl</span>, parts: { H: 1, Cl: 1 }, type: '化合物（分子をつくる）', desc: '水に溶かすと塩酸になる気体。' },
+      { name: 'アンモニア', formula: 'NH3', formatted: <span>NH<sub>3</sub></span>, parts: { N: 1, H: 3 }, type: '化合物（分子をつくる）', desc: '窒素原子1個に水素原子3個が結びついた刺激臭のある気体。' },
+      { name: '酸化銅', formula: 'CuO', formatted: <span>CuO</span>, parts: { Cu: 1, O: 1 }, type: '化合物（分子をつくらない）', desc: '銅を加熱して酸素と結合させた黒色の物質。' },
+      { name: '硫化鉄', formula: 'FeS', formatted: <span>FeS</span>, parts: { Fe: 1, S: 1 }, type: '化合物（分子をつくらない）', desc: '鉄と硫黄を結びつけた黒色の物質。' },
+      { name: '塩化ナトリウム', formula: 'NaCl', formatted: <span>NaCl</span>, parts: { Na: 1, Cl: 1 }, type: '化合物（分子をつくらない）', desc: '食塩の主成分。ナトリウムと塩素が交互に並ぶ。' },
+      { name: '窒素', formula: 'N2', formatted: <span>N<sub>2</sub></span>, parts: { N: 2 }, type: '単体（分子をつくる）', desc: '空気の約8割を占める気体。窒素原子2個の分子。' },
+      { name: '塩素', formula: 'Cl2', formatted: <span>Cl<sub>2</sub></span>, parts: { Cl: 2 }, type: '単体（分子をつくる）', desc: '黄緑色で刺激臭のある気体。塩素原子2個の分子。' },
+      { name: 'メタン', formula: 'CH4', formatted: <span>CH<sub>4</sub></span>, parts: { C: 1, H: 4 }, type: '化合物（分子をつくる）', desc: '天然ガスの主成分。炭素原子1個に水素原子4個が結合。' },
+      { name: '硫化銅', formula: 'CuS', formatted: <span>CuS</span>, parts: { Cu: 1, S: 1 }, type: '化合物（分子をつくらない）', desc: '銅と硫黄が反応してできる黒色の物質。' },
+      { name: '一酸化炭素', formula: 'CO', formatted: <span>CO</span>, parts: { C: 1, O: 1 }, type: '化合物（分子をつくる）', desc: '炭素が不完全燃焼すると発生する毒性のある気体。' },
+      { name: '酸化銀', formula: 'Ag2O', formatted: <span>Ag<sub>2</sub>O</span>, parts: { Ag: 2, O: 1 }, type: '化合物（分子をつくらない）', desc: '黒色の粉末。加熱すると銀と酸素に分解する。' },
+      { name: '酸化マグネシウム', formula: 'MgO', formatted: <span>MgO</span>, parts: { Mg: 1, O: 1 }, type: '化合物（分子をつくらない）', desc: 'マグネシウムが激しく燃焼したあとにできる白色の物質。' },
+      { name: '塩化銅', formula: 'CuCl2', formatted: <span>CuCl<sub>2</sub></span>, parts: { Cu: 1, Cl: 2 }, type: '化合物（分子をつくらない）', desc: '銅と塩素の化合物。水溶液は青色になる。' },
+      { name: '硫化水素', formula: 'H2S', formatted: <span>H<sub>2</sub>S</span>, parts: { H: 2, S: 1 }, type: '化合物（分子をつくる）', desc: '火山ガスなどに含まれる、腐った卵のような臭いがする気体。' },
+      { name: '二酸化硫黄', formula: 'SO2', formatted: <span>SO<sub>2</sub></span>, parts: { S: 1, O: 2 }, type: '化合物（分子をつくる）', desc: '硫黄が燃えると発生する刺激臭のある気体。' },
+      { name: '過酸化水素', formula: 'H2O2', formatted: <span>H<sub>2</sub>O<sub>2</sub></span>, parts: { H: 2, O: 2 }, type: '化合物（分子をつくる）', desc: 'オキシドールの成分。分解すると酸素を発生する。' }
+    ];
+
+    function App() {
+      const [activeTab, setActiveTab] = useState('quiz');
+
+      // クイズ用状態
+      const [quizIndex, setQuizIndex] = useState(0);
+      const [score, setScore] = useState(0);
+      const [quizFinished, setQuizFinished] = useState(false);
+      const [selectedOption, setSelectedOption] = useState(null);
+      const [isAnswered, setIsAnswered] = useState(false);
+      const [quizQuestions, setQuizQuestions] = useState([]);
+      const [quizLevel, setQuizLevel] = useState(1);
+      const [quizLevelNotice, setQuizLevelNotice] = useState(null);
+
+      // 30問クイズ生成機能
+      const generateQuiz = () => {
+        const validElements = ELEMENTS.filter(e => e.category !== '発展');
+        const questions = [];
+
+        const shuffledElements = [...validElements].sort(() => Math.random() - 0.5);
+        const shuffledFormulas = [...FORMULAS_DATA].sort(() => Math.random() - 0.5);
+
+        // 元素記号問題 (15問)
+        shuffledElements.slice(0, 15).forEach((item, index) => {
+          const type = index % 2 === 0 ? 'elemSymbolToName' : 'elemNameToSymbol';
+          if (type === 'elemSymbolToName') {
+            const wrongOptions = validElements
+              .filter(e => e.symbol !== item.symbol)
+              .sort(() => Math.random() - 0.5)
+              .slice(0, 3)
+              .map(e => e.name);
+            const options = [...wrongOptions, item.name].sort(() => Math.random() - 0.5);
+            questions.push({
+              categoryTitle: '元素記号クイズ',
+              type,
+              promptText: 'この元素記号の名称（名前）は？',
+              displayValue: item.symbol,
+              correctAnswer: item.name,
+              options,
+              tip: item.tip,
+              isMonoFont: false
+            });
+          } else {
+            const wrongOptions = validElements
+              .filter(e => e.symbol !== item.symbol)
+              .sort(() => Math.random() - 0.5)
+              .slice(0, 3)
+              .map(e => e.symbol);
+            const options = [...wrongOptions, item.symbol].sort(() => Math.random() - 0.5);
+            questions.push({
+              categoryTitle: '元素記号クイズ',
+              type,
+              promptText: `「${item.name}」の元素記号は？`,
+              displayValue: item.name,
+              correctAnswer: item.symbol,
+              options,
+              tip: item.tip,
+              isMonoFont: true
+            });
+          }
+        });
+
+        // 化学式問題 (15問)
+        shuffledFormulas.slice(0, 15).forEach((item, index) => {
+          const type = index % 2 === 0 ? 'formulaToName' : 'nameToFormula';
+          const formattedFormula = formatFormulaText(item.formula);
+
+          if (type === 'formulaToName') {
+            const wrongOptions = FORMULAS_DATA
+              .filter(f => f.formula !== item.formula)
+              .sort(() => Math.random() - 0.5)
+              .slice(0, 3)
+              .map(f => f.name);
+            const options = [...wrongOptions, item.name].sort(() => Math.random() - 0.5);
+            questions.push({
+              categoryTitle: '化学式マスタークイズ',
+              type,
+              promptText: 'この化学式が表す物質の名称は？',
+              displayValue: formattedFormula,
+              correctAnswer: item.name,
+              options,
+              tip: item.tip,
+              isMonoFont: false
+            });
+          } else {
+            const wrongOptions = FORMULAS_DATA
+              .filter(f => f.formula !== item.formula)
+              .sort(() => Math.random() - 0.5)
+              .slice(0, 3)
+              .map(f => formatFormulaText(f.formula));
+            const options = [...wrongOptions, formattedFormula].sort(() => Math.random() - 0.5);
+            questions.push({
+              categoryTitle: '化学式マスタークイズ',
+              type,
+              promptText: `「${item.name}」の化学式は？`,
+              displayValue: item.name,
+              correctAnswer: formattedFormula,
+              options,
+              tip: item.tip,
+              isMonoFont: true
+            });
+          }
+        });
+
+        setQuizQuestions(questions.sort(() => Math.random() - 0.5));
+        setQuizIndex(0);
+        setScore(0);
+        setQuizLevel(1);
+        setQuizLevelNotice(null);
+        setQuizFinished(false);
+        setSelectedOption(null);
+        setIsAnswered(false);
+      };
+
+      useEffect(() => {
+        generateQuiz();
+        initBuilderGame();
+      }, []);
+
+      const handleOptionSelect = (opt) => {
+        if (isAnswered) return;
+        setSelectedOption(opt);
+        setIsAnswered(true);
+
+        const currentCorrect = quizQuestions[quizIndex].correctAnswer;
+        if (opt === currentCorrect) {
+          setScore(prev => prev + 1);
+          setQuizLevel(prev => prev + 2);
+          setQuizLevelNotice('+2');
+        } else {
+          setQuizLevel(prev => Math.max(1, prev - 1));
+          setQuizLevelNotice('-1');
+        }
+      };
+
+      const handleNextQuiz = () => {
+        if (quizIndex + 1 < quizQuestions.length) {
+          setQuizIndex(prev => prev + 1);
+          setSelectedOption(null);
+          setIsAnswered(false);
+          setQuizLevelNotice(null);
+        } else {
+          setQuizFinished(true);
+        }
+      };
+
+      const [builderQuestions, setBuilderQuestions] = useState([]);
+      const [builderIndex, setBuilderIndex] = useState(0);
+      const [builderScore, setBuilderScore] = useState(0);
+      const [builderFinished, setBuilderFinished] = useState(false);
+      const [userAtoms, setUserAtoms] = useState([]);
+      const [builderIsAnswered, setBuilderIsAnswered] = useState(false);
+      const [builderIsCorrect, setBuilderIsCorrect] = useState(false);
+      const [showHint, setShowHint] = useState(false);
+      const [hasScoredCurrent, setHasScoredCurrent] = useState(false);
+      const [playerLevel, setPlayerLevel] = useState(1);
+      const [hasPenalizedCurrent, setHasPenalizedCurrent] = useState(false);
+      const [levelNotice, setLevelNotice] = useState(null);
+
+      const initBuilderGame = () => {
+        const shuffled = [...BUILDER_COMPOUNDS].sort(() => Math.random() - 0.5).slice(0, 20);
+        setBuilderQuestions(shuffled);
+        setBuilderIndex(0);
+        setBuilderScore(0);
+        setPlayerLevel(1);
+        setBuilderFinished(false);
+        setUserAtoms([]);
+        setBuilderIsAnswered(false);
+        setBuilderIsCorrect(false);
+        setShowHint(false);
+        setHasScoredCurrent(false);
+        setHasPenalizedCurrent(false);
+        setLevelNotice(null);
+      };
+
+      const currentBuilderTarget = builderQuestions[builderIndex] || BUILDER_COMPOUNDS[0];
+
+      const handleAddAtomByModel = (symbol) => {
+        if (builderIsAnswered) return;
+        setUserAtoms(prev => [...prev, symbol]);
+      };
+
+      const handleRemoveAtomAtIndex = (indexToRemove) => {
+        if (builderIsAnswered) return;
+        setUserAtoms(prev => prev.filter((_, idx) => idx !== indexToRemove));
+      };
+
+      const handleResetBuilderAtoms = () => {
+        if (builderIsAnswered) return;
+        setUserAtoms([]);
+      };
+
+      const checkBuilderAnswer = () => {
+        if (builderIsAnswered) return;
+        const required = currentBuilderTarget.parts;
+
+        const counts = userAtoms.reduce((acc, sym) => {
+          acc[sym] = (acc[sym] || 0) + 1;
+          return acc;
+        }, {});
+
+        let correct = true;
+
+        Object.keys(required).forEach(sym => {
+          if ((counts[sym] || 0) !== required[sym]) {
+            correct = false;
+          }
+        });
+
+        Object.keys(counts).forEach(sym => {
+          if (!required[sym] && counts[sym] > 0) {
+            correct = false;
+          }
+        });
+
+        setBuilderIsCorrect(correct);
+        setBuilderIsAnswered(true);
+
+        if (correct) {
+          if (!hasScoredCurrent) {
+            setBuilderScore(prev => prev + 1);
+            setHasScoredCurrent(true);
+            setPlayerLevel(prev => prev + 2);
+            setLevelNotice('+2');
+          }
+        } else {
+          setShowHint(true);
+          if (!hasPenalizedCurrent) {
+            setPlayerLevel(prev => Math.max(1, prev - 1));
+            setHasPenalizedCurrent(true);
+            setLevelNotice('-1');
+          } else {
+            setLevelNotice('penalized');
+          }
+        }
+      };
+
+      const handleRetryBuilder = () => {
+        setBuilderIsAnswered(false);
+      };
+
+      const handleNextBuilderQuestion = () => {
+        if (builderIndex + 1 < builderQuestions.length) {
+          setBuilderIndex(prev => prev + 1);
+          setUserAtoms([]);
+          setBuilderIsAnswered(false);
+          setBuilderIsCorrect(false);
+          setShowHint(false);
+          setHasScoredCurrent(false);
+          setHasPenalizedCurrent(false);
+          setLevelNotice(null);
+        } else {
+          setBuilderFinished(true);
+        }
+      };
+
+      return (
+        <div className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-12">
+          <header className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg sticky top-0 z-50">
+            <div className="max-w-5xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-2">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 backdrop-blur rounded-xl">
+                  <IconAtom />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold tracking-wide">中2理科：原子と化学式マスター</h1>
+                  <p className="text-xs text-blue-100">iPad・タブレット対応 オフライン対応アプリ</p>
+                </div>
+              </div>
+
+              <nav className="flex bg-blue-800/40 p-1 rounded-xl gap-1 w-full sm:w-auto overflow-x-auto justify-start sm:justify-end text-sm">
+                <button
+                  onClick={() => setActiveTab('cards')}
+                  className={`px-3 py-1.5 rounded-lg font-medium flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                    activeTab === 'cards' ? 'bg-white text-blue-700 shadow-sm' : 'text-blue-100 hover:bg-white/10'
+                  }`}
+                >
+                  <IconBook /> 元素カード
+                </button>
+                <button
+                  onClick={() => setActiveTab('quiz')}
+                  className={`px-3 py-1.5 rounded-lg font-medium flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                    activeTab === 'quiz' ? 'bg-white text-blue-700 shadow-sm' : 'text-blue-100 hover:bg-white/10'
+                  }`}
+                >
+                  <IconTrophy /> 記号クイズ
+                </button>
+                <button
+                  onClick={() => setActiveTab('builder')}
+                  className={`px-3 py-1.5 rounded-lg font-medium flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                    activeTab === 'builder' ? 'bg-white text-blue-700 shadow-sm' : 'text-blue-100 hover:bg-white/10'
+                  }`}
+                >
+                  <IconFlask /> 化学式をつくろう
+                </button>
+                <button
+                  onClick={() => setActiveTab('handbook')}
+                  className={`px-3 py-1.5 rounded-lg font-medium flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                    activeTab === 'handbook' ? 'bg-white text-blue-700 shadow-sm' : 'text-blue-100 hover:bg-white/10'
+                  }`}
+                >
+                  📖 図鑑・まとめ
+                </button>
+              </nav>
+            </div>
+          </header>
+
+          <main className="max-w-5xl mx-auto px-4 py-6">
+            {}
+            {activeTab === 'cards' && (
+              <section className="space-y-6">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                  <h2 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
+                    <span className="p-2 bg-blue-100 text-blue-600 rounded-lg"><IconBook /></span>
+                    中学校で習う重要元素一覧（カード一覧）
+                  </h2>
+                  <p className="text-slate-600 text-sm">
+                    タップして元素の性質やポイントを確認しましょう。元素記号は大文字小文字の区別が重要です！
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                  {ELEMENTS.map((elem, idx) => (
+                    <div
+                      key={idx}
+                      className={`p-4 rounded-xl border-2 transition-all hover:shadow-md hover:-translate-y-0.5 flex flex-col justify-between ${elem.color}`}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-xs font-semibold px-2 py-0.5 bg-white/70 rounded-md">
+                          {elem.category}
+                        </span>
+                        <span className="text-2xl font-black font-mono">{elem.symbol}</span>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-900">{elem.name}</h3>
+                        <p className="text-xs mt-1 leading-snug opacity-90">{elem.tip}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {}
+            {activeTab === 'quiz' && (
+              <section className="max-w-3xl mx-auto space-y-6">
+                <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white p-5 rounded-2xl shadow-lg border border-blue-700/50">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-blue-500/30 rounded-2xl border border-blue-400/30 backdrop-blur">
+                        <span className="text-3xl">🛡️</span>
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-black text-blue-100 flex items-center gap-2">
+                          元素＆化学式 試練クエスト
+                        </h2>
+                        <p className="text-xs text-blue-200 mt-0.5">
+                          正確な知識で知識の試練を突破せよ！正解でLv+2、不正解でLv-1（最低Lv.1）
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 bg-black/30 px-5 py-2.5 rounded-2xl border border-blue-400/20 backdrop-blur">
+                      <div className="text-center">
+                        <span className="text-[10px] font-bold text-blue-300 block uppercase tracking-widest">元素マスターレベル</span>
+                        <div className="text-2xl font-black font-mono text-amber-300 flex items-center justify-center gap-1">
+                          <span>Lv.</span>
+                          <span className="text-3xl">{quizLevel}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {!quizFinished && quizQuestions.length > 0 && (
+                    <div className="mt-4 pt-3 border-t border-blue-800/60 flex items-center justify-between text-xs text-blue-200">
+                      <span>QUEST {quizIndex + 1} / {quizQuestions.length}</span>
+                      <div className="w-1/2 bg-slate-950/80 rounded-full h-2.5 overflow-hidden border border-blue-600/30">
+                        <div
+                          className="bg-gradient-to-r from-cyan-400 to-emerald-400 h-full transition-all duration-300 rounded-full"
+                          style={{ width: `${((quizIndex + 1) / quizQuestions.length) * 100}%` }}
+                        ></div>
+                      </div>
+                      <span>クリア率: {Math.round(((quizIndex) / quizQuestions.length) * 100)}%</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative">
+                  {!quizFinished ? (
+                    <div>
+                      <div className="flex justify-between items-center mb-6 border-b pb-4">
+                        <span className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                          {quizQuestions[quizIndex]?.categoryTitle || 'クイズ'} (第 {quizIndex + 1} 問 / 全 {quizQuestions.length} 問)
+                        </span>
+                        <span className="text-sm font-medium text-slate-500">
+                          正解数: <strong className="text-blue-600 text-lg">{score}</strong> / {quizQuestions.length}
+                        </span>
+                      </div>
+
+                      {quizQuestions.length > 0 && (
+                        <div>
+                          <div className="text-center py-6 bg-slate-50 rounded-2xl border border-slate-100 mb-6 px-4">
+                            <p className="text-sm text-slate-500 mb-1">{quizQuestions[quizIndex].promptText}</p>
+                            <div className={`text-4xl sm:text-5xl font-black tracking-wider my-2 text-indigo-600 ${
+                              quizQuestions[quizIndex].type === 'elemSymbolToName' || quizQuestions[quizIndex].type === 'formulaToName' ? 'font-mono text-blue-600' : ''
+                            }`}>
+                              {quizQuestions[quizIndex].displayValue}
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                            {quizQuestions[quizIndex].options.map((opt, i) => {
+                              let btnStyle = "bg-white border-slate-200 text-slate-700 hover:border-blue-300 hover:bg-blue-50/50";
+                              if (isAnswered) {
+                                if (opt === quizQuestions[quizIndex].correctAnswer) {
+                                  btnStyle = "bg-emerald-500 text-white border-emerald-500 shadow-md";
+                                } else if (opt === selectedOption) {
+                                  btnStyle = "bg-rose-500 text-white border-rose-500";
+                                } else {
+                                  btnStyle = "bg-slate-100 text-slate-400 border-slate-200 opacity-60";
+                                }
+                              }
+
+                              return (
+                                <button
+                                  key={i}
+                                  onClick={() => handleOptionSelect(opt)}
+                                  disabled={isAnswered}
+                                  className={`p-4 rounded-xl border-2 font-bold text-lg text-center transition-all duration-200 active:scale-95 ${
+                                    quizQuestions[quizIndex].isMonoFont ? 'font-mono text-xl' : ''
+                                  } ${btnStyle}`}
+                                >
+                                  {opt}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {isAnswered && (
+                            <div className={`p-4 rounded-xl border mb-6 flex items-start gap-3 ${
+                              selectedOption === quizQuestions[quizIndex].correctAnswer ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'
+                            }`}>
+                              {selectedOption === quizQuestions[quizIndex].correctAnswer ? (
+                                <div className="p-1.5 bg-emerald-100 rounded-full shrink-0"><IconCheck /></div>
+                              ) : (
+                                <div className="p-1.5 bg-rose-100 rounded-full shrink-0"><IconX /></div>
+                              )}
+                              <div className="w-full">
+                                <div className="flex items-center justify-between gap-2">
+                                  <p className="font-bold text-slate-800">
+                                    {selectedOption === quizQuestions[quizIndex].correctAnswer ? '正解！見事な試練突破です！' : `残念... 正解は「${quizQuestions[quizIndex].correctAnswer}」`}
+                                  </p>
+                                  {quizLevelNotice === '+2' && (
+                                    <span className="px-3 py-1 bg-amber-400 text-slate-900 font-black rounded-full text-sm animate-bounce shadow-md">
+                                      LEVEL +2 UP! ⬆️
+                                    </span>
+                                  )}
+                                  {quizLevelNotice === '-1' && (
+                                    <span className="px-3 py-1 bg-rose-500 text-white font-bold rounded-full text-xs shadow-md">
+                                      LEVEL -1 🔻
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-slate-600 mt-1">
+                                  解説・ポイント: {quizQuestions[quizIndex].tip}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+
+                          {isAnswered && (
+                            <button
+                              onClick={handleNextQuiz}
+                              className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-bold shadow-md hover:bg-blue-700 transition flex items-center justify-center gap-2 text-base active:scale-98"
+                            >
+                              次のミッションへ進む
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 space-y-4">
+                      <div className="inline-block p-4 bg-amber-50 rounded-full border border-amber-200">
+                        <IconTrophy />
+                      </div>
+                      <h3 className="text-2xl font-black text-slate-800">全{quizQuestions.length}問 試練クリア！</h3>
+                      <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 max-w-sm mx-auto">
+                        <p className="text-sm text-blue-700 font-bold">最終達成レベル</p>
+                        <p className="text-4xl font-black text-amber-500 my-1">Lv. {quizLevel}</p>
+                        <p className="text-xs text-blue-950">
+                          正解数: <strong className="text-blue-600 font-bold">{score}</strong> / {quizQuestions.length} 問
+                        </p>
+                      </div>
+                      <button
+                        onClick={generateQuiz}
+                        className="mt-4 px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 transition inline-flex items-center gap-2"
+                      >
+                        <IconRefresh /> もう一度クエストに挑戦する
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {}
+            {activeTab === 'builder' && (
+              <section className="max-w-3xl mx-auto space-y-6">
+                <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-purple-900 text-white p-5 rounded-2xl shadow-lg border border-indigo-700/50">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-indigo-500/30 rounded-2xl border border-indigo-400/30 backdrop-blur">
+                        <span className="text-3xl">⚔️</span>
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-black text-indigo-100 flex items-center gap-2">
+                          化学錬金術クエスト
+                        </h2>
+                        <p className="text-xs text-indigo-200 mt-0.5">
+                          原子を召喚して分子を練成せよ！正解でLv+2、初回失敗でLv-1（最低Lv.1）
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 bg-black/30 px-5 py-2.5 rounded-2xl border border-indigo-400/20 backdrop-blur">
+                      <div className="text-center">
+                        <span className="text-[10px] font-bold text-indigo-300 block uppercase tracking-widest">錬金術師レベル</span>
+                        <div className="text-2xl font-black font-mono text-amber-300 flex items-center justify-center gap-1">
+                          <span>Lv.</span>
+                          <span className="text-3xl">{playerLevel}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {!builderFinished && builderQuestions.length > 0 && (
+                    <div className="mt-4 pt-3 border-t border-indigo-700/50 flex items-center justify-between text-xs text-indigo-200">
+                      <span>QUEST {builderIndex + 1} / {builderQuestions.length}</span>
+                      <div className="w-1/2 bg-indigo-950/80 rounded-full h-2.5 overflow-hidden border border-indigo-600/30">
+                        <div
+                          className="bg-gradient-to-r from-amber-400 to-emerald-400 h-full transition-all duration-300 rounded-full"
+                          style={{ width: `${((builderIndex + 1) / builderQuestions.length) * 100}%` }}
+                        ></div>
+                      </div>
+                      <span>クリア率: {Math.round(((builderIndex) / builderQuestions.length) * 100)}%</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative">
+                  {!builderFinished && builderQuestions.length > 0 ? (
+                    <div>
+                      <div className="bg-indigo-50/70 p-5 rounded-2xl border border-indigo-100 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div>
+                          <span className="text-xs font-bold bg-indigo-600 text-white px-2.5 py-1 rounded-md">
+                            {currentBuilderTarget.type}
+                          </span>
+                          <h3 className="text-2xl font-black text-indigo-950 mt-1">
+                            【ミッション】「{currentBuilderTarget.name}」を錬成せよ！
+                          </h3>
+                          <p className="text-xs text-indigo-700 mt-1">{currentBuilderTarget.desc}</p>
+                        </div>
+
+                        {builderIsAnswered ? (
+                          <div className="text-right bg-white px-4 py-2 rounded-xl border border-indigo-200 shadow-sm">
+                            <span className="text-xs text-slate-400 font-bold block">正解の化学式</span>
+                            <div className="text-2xl font-black font-mono text-indigo-600">
+                              {currentBuilderTarget.formatted}
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setShowHint(!showHint)}
+                            className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 transition-all text-left sm:text-right shadow-sm active:scale-95 flex sm:flex-col justify-between items-center sm:items-end gap-1 cursor-pointer"
+                          >
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800">
+                              <span>💡</span>
+                              <span>{showHint ? 'ヒントを閉じる' : 'ヒント枠（タッチして確認）'}</span>
+                            </div>
+                            {showHint ? (
+                              <div className="text-2xl font-black font-mono text-amber-600 animate-fade-in">
+                                {currentBuilderTarget.formatted}
+                              </div>
+                            ) : (
+                              <span className="text-[11px] text-amber-600 font-medium">
+                                タップで化学式を表示
+                              </span>
+                            )}
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="space-y-2 mb-6">
+                        <div className="flex justify-between items-center px-1">
+                          <span className="text-xs font-bold text-slate-500 flex items-center gap-1">
+                            🎨 錬成キャンバス ({userAtoms.length} 個の原子)
+                          </span>
+                          {userAtoms.length > 0 && !builderIsAnswered && (
+                            <button
+                              onClick={handleResetBuilderAtoms}
+                              className="text-xs text-rose-500 hover:text-rose-700 font-bold underline transition"
+                            >
+                              すべてクリア
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="min-h-[170px] bg-slate-900 rounded-2xl p-5 flex flex-wrap items-center justify-center gap-4 relative border-2 border-dashed border-indigo-300/40 shadow-inner">
+                          {userAtoms.length === 0 ? (
+                            <div className="text-center text-slate-400 text-sm py-4">
+                              <p className="font-medium mb-1">🧪 下の原子モデルをタッチして召喚しよう</p>
+                              <p className="text-xs text-slate-500">（召喚した原子をタッチすると消去できます）</p>
+                            </div>
+                          ) : (
+                            userAtoms.map((sym, idx) => {
+                              const elemInfo = ELEMENTS.find(e => e.symbol === sym) || { atomColor: '#94a3b8' };
+                              return (
+                                <button
+                                  key={`${sym}-${idx}`}
+                                  onClick={() => handleRemoveAtomAtIndex(idx)}
+                                  disabled={builderIsAnswered}
+                                  title="タッチして取り除く"
+                                  className="group relative w-16 h-16 rounded-full flex items-center justify-center font-mono font-black text-white text-lg shadow-xl transition-all duration-200 hover:scale-110 active:scale-95 disabled:hover:scale-100 cursor-pointer"
+                                  style={{
+                                    backgroundColor: elemInfo.atomColor,
+                                    boxShadow: 'inset -4px -4px 10px rgba(0,0,0,0.4), inset 4px 4px 10px rgba(255,255,255,0.3), 0 8px 12px rgba(0,0,0,0.3)'
+                                  }}
+                                >
+                                  <span>{sym}</span>
+                                  {!builderIsAnswered && (
+                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-xs rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md">
+                                      ×
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 text-center sm:text-left">
+                          👇 タッチしてキャンバスに召喚する原子を選択
+                        </h4>
+
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-11 gap-2">
+                          {['H', 'O', 'C', 'Cl', 'N', 'Na', 'Cu', 'Fe', 'S', 'Ag', 'Mg'].map((sym) => {
+                            const elemInfo = ELEMENTS.find(e => e.symbol === sym) || { atomColor: '#94a3b8', name: '' };
+                            return (
+                              <button
+                                key={sym}
+                                onClick={() => handleAddAtomByModel(sym)}
+                                disabled={builderIsAnswered}
+                                className="flex flex-col items-center justify-center p-2 bg-white rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 shadow-sm transition-all duration-150 active:scale-90 disabled:opacity-50 disabled:active:scale-100 group"
+                              >
+                                <div
+                                  className="w-10 h-10 rounded-full flex items-center justify-center font-mono font-bold text-white text-xs shadow-md group-hover:scale-110 transition-transform"
+                                  style={{
+                                    backgroundColor: elemInfo.atomColor,
+                                    boxShadow: 'inset -3px -3px 6px rgba(0,0,0,0.3), inset 3px 3px 6px rgba(255,255,255,0.3)'
+                                  }}
+                                >
+                                  {sym}
+                                </div>
+                                <span className="text-[10px] font-bold text-slate-600 mt-1 truncate max-w-full">{elemInfo.name}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {!builderIsAnswered ? (
+                        <button
+                          onClick={checkBuilderAnswer}
+                          className="w-full py-3.5 bg-indigo-600 text-white font-bold rounded-xl shadow-md hover:bg-indigo-700 active:scale-98 transition text-lg flex items-center justify-center gap-2"
+                        >
+                          <span>✨ 錬成判定（回答する）</span>
+                        </button>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className={`p-4 rounded-xl border flex items-start gap-3 ${
+                            builderIsCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'
+                          }`}>
+                            {builderIsCorrect ? (
+                              <div className="p-1.5 bg-emerald-200 rounded-full shrink-0"><IconCheck /></div>
+                            ) : (
+                              <div className="p-1.5 bg-rose-200 rounded-full shrink-0"><IconX /></div>
+                            )}
+                            <div className="w-full">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="font-bold text-base">
+                                  {builderIsCorrect ? '錬成成功！見事な構造です！' : '錬成失敗... 原子の数や種類がちがうようです。'}
+                                </p>
+                                {levelNotice === '+2' && (
+                                  <span className="px-3 py-1 bg-amber-400 text-slate-900 font-black rounded-full text-sm animate-bounce shadow-md">
+                                    LEVEL +2 UP! ⬆️
+                                  </span>
+                                )}
+                                {levelNotice === '-1' && (
+                                  <span className="px-3 py-1 bg-rose-500 text-white font-bold rounded-full text-xs shadow-md">
+                                    LEVEL -1 🔻 (1回のみ減点)
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs mt-1 leading-relaxed opacity-90">
+                                {builderIsCorrect ? (
+                                  `解説: ${currentBuilderTarget.name}（${currentBuilderTarget.formula}）は${currentBuilderTarget.desc}`
+                                ) : (
+                                  `💡 ヒントが開きました！化学式「${currentBuilderTarget.formula}」を参考に原子を並べ直して再挑戦しよう！`
+                                )}
+                              </p>
+                            </div>
+                          </div>
+
+                          {builderIsCorrect ? (
+                            <button
+                              onClick={handleNextBuilderQuestion}
+                              className="w-full py-3.5 bg-indigo-600 text-white font-bold rounded-xl shadow-md hover:bg-indigo-700 transition flex items-center justify-center gap-2"
+                            >
+                              次のミッションへ進む
+                            </button>
+                          ) : (
+                            <button
+                              onClick={handleRetryBuilder}
+                              className="w-full py-3.5 bg-amber-500 text-white font-bold rounded-xl shadow-md hover:bg-amber-600 transition flex items-center justify-center gap-2 text-base active:scale-98"
+                            >
+                              <IconRefresh /> もう一度組み立て直す（正解するまで進めません）
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 space-y-4">
+                      <div className="inline-block p-4 bg-amber-50 rounded-full border border-amber-200">
+                        <IconTrophy />
+                      </div>
+                      <h3 className="text-2xl font-black text-slate-800">全{builderQuestions.length}クエスト 完了！</h3>
+                      <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100 max-w-sm mx-auto">
+                        <p className="text-sm text-indigo-700 font-bold">最終結果</p>
+                        <p className="text-4xl font-black text-amber-500 my-1">Lv. {playerLevel}</p>
+                        <p className="text-xs text-indigo-950">
+                          正解数: <strong className="text-indigo-600 font-bold">{builderScore}</strong> / {builderQuestions.length} 問
+                        </p>
+                      </div>
+                      <button
+                        onClick={initBuilderGame}
+                        className="mt-4 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-md hover:bg-indigo-700 transition inline-flex items-center gap-2"
+                      >
+                        <IconRefresh /> もう一度クエストに挑戦する
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {}
+            {activeTab === 'handbook' && (
+              <section className="space-y-6">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                  <h2 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
+                    <span className="p-2 bg-amber-100 text-amber-600 rounded-lg">📖</span>
+                    中2化学：テストに出る重要ポイントまとめノート
+                  </h2>
+                  <p className="text-slate-600 text-sm">
+                    原子・分子の性質や、化学式の表し方のルールをまとめて確認できます。
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <h3 className="text-lg font-bold text-blue-700 border-b pb-2">1. 原子（ドルトンが提唱）の3ルール</h3>
+                    <ul className="space-y-2 text-sm text-slate-700 list-disc list-inside">
+                      <li>それ以上<strong>分けることができない</strong>。</li>
+                      <li>化学変化によって<strong>なくなったり、新しくできたり、他の原子に変わったりしない</strong>。</li>
+                      <li>種類によって<strong>質量や大きさが決まっている</strong>。</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <h3 className="text-lg font-bold text-indigo-700 border-b pb-2">2. 単体と化合物・分子をつくる物質</h3>
+                    <div className="space-y-2 text-sm text-slate-700">
+                      <p><strong>・単体：</strong>1種類の元素だけでできている物質（例: H₂, O₂, Cu, Fe）</p>
+                      <p><strong>・化合物：</strong>2種類以上の元素からできている物質（例: H₂O, CO₂, NaCl）</p>
+                      <p className="p-2 bg-amber-50 rounded-lg text-xs text-amber-900 border border-amber-200">
+                        💡 <strong>重要！</strong> 金属（Cu, Feなど）や食塩（NaCl）は分子をつくりません（原子が規則正しく無数に並んでいるため）。
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3 md:col-span-2">
+                    <h3 className="text-lg font-bold text-emerald-700 border-b pb-2">3. 化学式の数字の意味</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-slate-700">
+                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <p className="font-bold text-base font-mono text-emerald-600 mb-1">H<sub>2</sub>O の「2」</p>
+                        <p className="text-xs leading-relaxed">
+                          右下の小さな数字は、<strong>1つの分子をつくっている原子の個数</strong>を表します。（「1」の場合は省略）
+                        </p>
+                      </div>
+                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <p className="font-bold text-base font-mono text-emerald-600 mb-1">2H<sub>2</sub>O の「2」</p>
+                        <p className="text-xs leading-relaxed">
+                          化学式の前の大きな数字（係数）は、<strong>その分子全体の個数</strong>を表します。（水分子が2個あるという意味）
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
+
+          </main>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
